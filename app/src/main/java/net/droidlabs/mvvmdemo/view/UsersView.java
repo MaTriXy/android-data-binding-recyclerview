@@ -8,6 +8,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
+import net.droidlabs.mvvm.recyclerview.adapter.ClickHandler;
+import net.droidlabs.mvvm.recyclerview.adapter.LongClickHandler;
 import net.droidlabs.mvvm.recyclerview.adapter.binder.CompositeItemBinder;
 import net.droidlabs.mvvm.recyclerview.adapter.binder.ItemBinder;
 import net.droidlabs.mvvmdemo.BR;
@@ -47,20 +50,36 @@ public class UsersView extends AppCompatActivity
 
     public View.OnClickListener onButtonClick()
     {
-        binding.activityUsersRecycler.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                // do some magic
-            }
-        });
         return new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
                 usersViewModel.addUser(getStringFromEditText(binding.usersViewFirstname), getStringFromEditText(binding.usersViewLastname));
+            }
+        };
+    }
+
+    public ClickHandler<UserViewModel> clickHandler()
+    {
+        return new ClickHandler<UserViewModel>()
+        {
+            @Override
+            public void onClick(UserViewModel user)
+            {
+                Toast.makeText(UsersView.this, user.getFirstName() + " " + user.getLastName(), Toast.LENGTH_SHORT).show();
+            }
+        };
+    }
+
+    public LongClickHandler<UserViewModel> longClickHandler()
+    {
+        return new LongClickHandler<UserViewModel>()
+        {
+            @Override
+            public void onLongClick(UserViewModel user)
+            {
+                Toast.makeText(UsersView.this, "LONG CLICK: " + user.getFirstName() + " " + user.getLastName(), Toast.LENGTH_SHORT).show();
             }
         };
     }

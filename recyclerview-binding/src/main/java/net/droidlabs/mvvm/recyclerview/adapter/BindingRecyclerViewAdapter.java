@@ -7,18 +7,22 @@ import android.databinding.ViewDataBinding;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import net.droidlabs.mvvm.recyclerview.adapter.binder.ItemBinder;
 
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 
-public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingRecyclerViewAdapter.ViewHolder>
+public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingRecyclerViewAdapter.ViewHolder> implements View.OnClickListener, View.OnLongClickListener
 {
+    private static final int ITEM_MODEL = -124;
     private final WeakReferenceOnListChangedCallback onListChangedCallback;
     private final ItemBinder<T> itemBinder;
     private ObservableList<T> items;
     private LayoutInflater inflater;
+    private ClickHandler<T> clickHandler;
+    private LongClickHandler<T> longClickHandler;
 
     public BindingRecyclerViewAdapter(ItemBinder<T> itemBinder, @Nullable Collection<T> items)
     {
@@ -87,8 +91,11 @@ public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingR
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position)
     {
-        T item = items.get(position);
+        final T item = items.get(position);
         viewHolder.binding.setVariable(itemBinder.getBindingVariable(item), item);
+        viewHolder.binding.getRoot().setTag(ITEM_MODEL, item);
+        viewHolder.binding.getRoot().setOnClickListener(this);
+        viewHolder.binding.getRoot().setOnLongClickListener(this);
         viewHolder.binding.executePendingBindings();
     }
 
@@ -102,6 +109,28 @@ public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingR
     public int getItemCount()
     {
         return items == null ? 0 : items.size();
+    }
+
+    @Override
+    public void onClick(View v)
+    {
+        if (clickHandler != null)
+        {
+            T item = (T) v.getTag(ITEM_MODEL);
+            clickHandler.onClick(item);
+        }
+    }
+
+    @Override
+    public boolean onLongClick(View v)
+    {
+        if (longClickHandler != null)
+        {
+            T item = (T) v.getTag(ITEM_MODEL);
+            longClickHandler.onLongClick(item);
+            return true;
+        }
+        return false;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder
@@ -174,5 +203,15 @@ public class BindingRecyclerViewAdapter<T> extends RecyclerView.Adapter<BindingR
                 adapter.notifyItemRangeRemoved(positionStart, itemCount);
             }
         }
+    }
+
+    public void setClickHandler(ClickHandler<T> clickHandler)
+    {
+        this.clickHandler = clickHandler;
+    }
+
+    public void setLongClickHandler(LongClickHandler<T> clickHandler)
+    {
+        this.longClickHandler = clickHandler;
     }
 }
